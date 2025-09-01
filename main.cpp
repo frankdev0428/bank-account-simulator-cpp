@@ -24,6 +24,7 @@ using namespace std;
 #include <stdexcept>
 #include <random>
 #include <algorithm>
+#include <fstream>
 
 // ---------------- Money helpers ----------------
 static long long parseAmountCents(const string &s) {
@@ -68,6 +69,8 @@ class Account {
     size_t salt_ = 0;
     size_t pinHash_ = 0;
 public:
+    friend class bank;
+
     Account(int id, string owner, const string &pin)
         : id_(id), owner_(std::move(owner)) {
         // random-ish salt
@@ -129,6 +132,31 @@ public:
         }
         if (accounts_.empty()) cout << "(none)\n";
     }
+
+    bool saveToFile(const std::string& path) const {
+        std::ofstream out(path, std::ios::trunc);
+        if (!out) return false;
+        for (const auto& a: accounts_){
+          string owner = a.owner();
+          replace(owner.begin(), owner.end(), '\t', ' ');
+
+
+
+        }
+    };
+    bool loadFromFile(const std::string& path) {
+        ifstream in(path);
+        if (!in) return false;
+        
+        accounts_.clear();
+        int maxId = 1000;
+        string line;
+        while (getline(in, line)) {
+
+        }
+        nextId_ = maxId + 1;
+        return true;
+    };
 };
 
 // ---------------- CLI helpers ----------------
@@ -171,6 +199,9 @@ static void accountSession(Account* acc) {
 int main() {
     ios::sync_with_stdio(false); cin.tie(nullptr);
     Bank bank;
+    const string DB = "accounts.tsv";
+    bank.loadFromFile(DB);
+
 
     cout << "=== Bank Account Simulator ===\n";
     while (true) {
@@ -198,6 +229,7 @@ int main() {
         } else if (choice == 3) {
             bank.listAccounts();
         } else if (choice == 4) {
+            bank.saveToFile(DB);
             cout << "Goodbye!\n"; break;
         } else {
             cout << "Invalid choice.\n";
