@@ -11,7 +11,6 @@
 // Run:
 //   ./bank
 //
-// NOTE: This single-file version is great for learning. Later, we can split
 // into Account.hpp/Bank.hpp and add file persistence (save/load).
 
 
@@ -133,16 +132,25 @@ public:
         if (accounts_.empty()) cout << "(none)\n";
     }
 
-    bool saveToFile(const std::string& path) const {
-        std::ofstream out(path, std::ios::trunc);
-        if (!out) return false;
-        for (const auto& a: accounts_){
-          string owner = a.owner();
-          replace(owner.begin(), owner.end(), '\t', ' ');
+    bool Bank::saveToFile(const std::string& path) const {
+       std::ofstream out(path, std::ios::trunc);
+    if (!out) {
+        std::cerr << "ERROR: Could not open file " << path << " for writing\n";
+        return false;
+    }
 
+    for (const auto& a : accounts_) {
+        std::string owner = a.owner_;
+        std::replace(owner.begin(), owner.end(), '\t', ' ');
+        out << a.id_ << '\t'
+            << owner << '\t'
+            << a.balanceCents_ << '\t'
+            << a.salt_ << '\t'
+            << a.pinHash_ << '\n';
+    }
 
-
-        }
+    std::cerr << "DEBUG: Wrote " << accounts_.size() << " accounts to file\n";
+    return true;
     };
     bool loadFromFile(const std::string& path) {
         ifstream in(path);
@@ -230,7 +238,8 @@ int main() {
             bank.listAccounts();
         } else if (choice == 4) {
             bank.saveToFile(DB);
-            cout << "Goodbye!\n"; break;
+            cout << "Goodbye!\n";
+            break;
         } else {
             cout << "Invalid choice.\n";
         }
